@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="個人健身成果儀表板，展示運動紀錄與 InBody 歷史變化。">
+  <title>個人健身成果儀表板｜主管檢視版</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #1769e0;
+      --primary-soft: #eaf2ff;
+      --bg: #f4f6fa;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #687386;
+      --border: #e2e7ef;
+      --green: #168653;
+      --green-soft: #e7f7ef;
+      --amber: #946200;
+      --amber-soft: #fff5d9;
+      --shadow: 0 8px 28px rgba(22, 37, 65, .06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif;
+      color: var(--text); background: var(--bg); line-height: 1.55;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    header {
+      display: flex; gap: 20px; align-items: center; justify-content: space-between;
+      padding: 24px 28px; margin-bottom: 18px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow);
+    }
+    .eyebrow { color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: .12em; margin-bottom: 5px; }
+    h1 { margin: 0; font-size: clamp(22px, 3vw, 30px); line-height: 1.25; }
+    .subtitle { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+    .status-pill { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; padding: 8px 11px; border-radius: 999px; color: var(--amber); background: var(--amber-soft); font-size: 12px; font-weight: 700; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #d69b18; }
+    .nav { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; background: #e9edf4; border-radius: 14px; margin-bottom: 18px; }
+    .nav button { flex: 1 1 190px; cursor: pointer; border: 0; border-radius: 10px; padding: 12px 14px; background: transparent; color: #4f5b6e; font-size: 14px; font-weight: 700; }
+    .nav button:hover { background: rgba(255,255,255,.7); }
+    .nav button.active { color: var(--primary); background: white; box-shadow: 0 2px 8px rgba(19, 37, 68, .08); }
+    .section { display: none; padding: 26px; border: 1px solid var(--border); border-radius: 20px; background: var(--card); box-shadow: var(--shadow); margin-bottom: 18px; }
+    .section.active { display: block; }
+    .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+    h2 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+    h3 { margin: 0 0 8px; font-size: 16px; }
+    p { margin: 7px 0; }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .card { min-width: 0; padding: 18px; border: 1px solid var(--border); border-radius: 15px; background: #fcfdff; }
+    .card-title { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+    .card-value { color: var(--primary); font-size: clamp(25px, 3.2vw, 34px); font-weight: 800; line-height: 1.15; letter-spacing: -.03em; }
+    .card-unit { color: var(--muted); font-size: 12px; margin-top: 7px; }
+    .metric-change { font-size: 12px; font-weight: 700; margin-top: 8px; }
+    .positive { color: var(--green); }
+    .notice { padding: 14px 16px; margin: 12px 0 18px; border-radius: 12px; border: 1px solid #f0dca3; background: #fffaf0; color: #725316; font-size: 13px; }
+    .notice.info { border-color: #cfe0ff; background: #f3f7ff; color: #355785; }
+    .chart-wrap { height: 320px; position: relative; padding: 10px 0 2px; }
+    .chart-placeholder { display: flex; min-height: 230px; align-items: center; justify-content: center; text-align: center; padding: 28px; border: 1px dashed #cbd4e1; border-radius: 14px; background: #fafcff; color: var(--muted); }
+    .placeholder-icon { font-size: 30px; margin-bottom: 7px; }
+    .placeholder-title { color: var(--text); font-weight: 800; margin-bottom: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+    th, td { text-align: left; padding: 13px 12px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); background: #f7f9fc; font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+    .table-wrap { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 13px; }
+    .table-wrap table { margin: 0; min-width: 580px; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 7px; background: var(--green-soft); color: var(--green); font-weight: 700; font-size: 12px; white-space: nowrap; }
+    .badge.pending { background: var(--amber-soft); color: var(--amber); }
+    .timeline { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+    .timeline-card { padding: 17px; border-radius: 14px; border: 1px solid var(--border); }
+    .timeline-date { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .timeline-weight { font-size: 27px; font-weight: 800; margin: 6px 0 12px; }
+    .mini-metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+    .mini-metric { padding-top: 10px; border-top: 1px solid var(--border); }
+    .mini-metric span { display: block; color: var(--muted); font-size: 12px; }
+    .mini-metric strong { display: block; font-size: 17px; margin-top: 2px; }
+    .schedule-card { padding: 18px; margin-bottom: 12px; border: 1px solid var(--border); border-left: 4px solid var(--primary); background: #fbfcff; border-radius: 0 13px 13px 0; }
+    .day-tag { display: inline-block; color: var(--primary); background: var(--primary-soft); border-radius: 7px; padding: 4px 8px; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
+    ul.exercise-list { margin: 8px 0 0; padding-left: 20px; color: #475267; }
+    ul.exercise-list li { padding: 3px 0; }
+    footer { padding: 8px 4px 20px; color: var(--muted); font-size: 12px; text-align: center; }
+    @media (max-width: 700px) {
+      body { padding: 12px; }
+      header { padding: 19px; align-items: flex-start; flex-direction: column; }
+      .section { padding: 18px; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .grid-2, .timeline { grid-template-columns: 1fr; }
+      .section-head { flex-direction: column; }
+      .mini-metrics { grid-template-columns: repeat(3, minmax(0,1fr)); }
+      .mini-metric strong { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div>
+        <div class="eyebrow">FITNESS PERFORMANCE DASHBOARD</div>
+        <h1>個人健身與運動成果儀表板</h1>
+        <p class="subtitle">主管檢視版｜呈現運動成果與身體組成的長期變化</p>
+      </div>
+      <div class="status-pill"><span class="status-dot"></span>運動紀錄待匯入</div>
+    </header>
+
+    <nav class="nav" aria-label="儀表板功能分頁">
+      <button class="active" type="button" data-section="section1" aria-selected="true">01　跑步里程</button>
+      <button type="button" data-section="section2" aria-selected="false">02　運動與恢復</button>
+      <button type="button" data-section="section3" aria-selected="false">03　InBody 身體組成</button>
+      <button type="button" data-section="section4" aria-selected="false">04　每週訓練安排</button>
+    </nav>
+
+    <section id="section1" class="section active">
+      <div class="section-head">
+        <div>
+          <h2>跑步里程統計</h2>
+          <p class="muted">可依週、月、年追蹤跑步量與訓練規律。</p>
+        </div>
+        <span class="badge pending">尚未連接 Apple 健康資料</span>
+      </div>
+      <div class="grid-3">
+        <article class="card"><div class="card-title">本週累計跑量</div><div class="card-value">—</div><div class="card-unit">公里 KM｜待匯入及核對</div></article>
+        <article class="card"><div class="card-title">本月累計跑量</div><div class="card-value">—</div><div class="card-unit">公里 KM｜待匯入及核對</div></article>
+        <article class="card"><div class="card-title">今年累計跑量</div><div class="card-value">—</div><div class="card-unit">公里 KM｜待匯入及核對</div></article>
+      </div>
+      <div class="notice info">目前先不顯示示範里程，避免將假數據誤認為實際成果。完成 Apple 健康資料整理後，即可填入統計數字並產生月度趨勢圖。</div>
+      <div class="chart-placeholder"><div><div class="placeholder-icon">📈</div><div class="placeholder-title">每月跑量圖表</div><div>等待匯入並核對運動日期、距離及重複紀錄後顯示</div></div></div>
+    </section>
+
+    <section id="section2" class="section">
+      <div class="section-head">
+        <div>
+          <h2>運動紀錄與恢復趨勢</h2>
+          <p class="muted">只呈現經確認的彙總趨勢，不公開個別心率紀錄或 GPS 路線。</p>
+        </div>
+        <span class="badge pending">資料待核實</span>
+      </div>
+      <div class="grid-3">
+        <article class="card"><div class="card-title">運動總次數</div><div class="card-value">—</div><div class="card-unit">待匯入運動紀錄</div></article>
+        <article class="card"><div class="card-title">累計運動時間</div><div class="card-value">—</div><div class="card-unit">小時｜待匯入運動紀錄</div></article>
+        <article class="card"><div class="card-title">活動量趨勢</div><div class="card-value">—</div><div class="card-unit">待核對紀錄與單位</div></article>
+      </div>
+      <div class="notice">隱私設定：主管版不顯示靜止心率、運動平均／最高心率、健康診斷或逐筆運動路線。若日後要加入心率趨勢，應先選擇適合公開的彙總指標。</div>
+      <div class="chart-placeholder"><div><div class="placeholder-icon">❤️</div><div class="placeholder-title">運動與恢復趨勢</div><div>目前沒有已核實的彙總資料可供繪圖</div></div></div>
+    </section>
+
+    <section id="section3" class="section">
+      <div class="section-head">
+        <div>
+          <h2>InBody 身體組成歷程</h2>
+          <p class="muted">比較 2020 年 9 月與 2025 年 4 月兩次測量結果。</p>
+        </div>
+        <span class="badge">2 次測量紀錄</span>
+      </div>
+      <div class="grid-3">
+        <article class="card"><div class="card-title">體重變化</div><div class="card-value">−3.5 <span style="font-size:15px">kg</span></div><div class="metric-change positive">76.8 → 73.3 kg</div></article>
+        <article class="card"><div class="card-title">體脂肪重變化</div><div class="card-value">−2.6 <span style="font-size:15px">kg</span></div><div class="metric-change positive">12.4 → 9.8 kg</div></article>
+        <article class="card"><div class="card-title">體脂率變化</div><div class="card-value">−2.7 <span style="font-size:15px">個百分點</span></div><div class="metric-change positive">16.1% → 13.4%</div></article>
+      </div>
+      <div class="timeline">
+        <article class="timeline-card">
+          <div class="timeline-date">2020 年 9 月 1 日</div>
+          <div class="timeline-weight">76.8 kg</div>
+          <div class="mini-metrics">
+            <div class="mini-metric"><span>骨骼肌重</span><strong>36.8 kg</strong></div>
+            <div class="mini-metric"><span>體脂肪重</span><strong>12.4 kg</strong></div>
+            <div class="mini-metric"><span>體脂率</span><strong>16.1%</strong></div>
+          </div>
+        </article>
+        <article class="timeline-card">
+          <div class="timeline-date">2025 年 4 月 24 日</div>
+          <div class="timeline-weight">73.3 kg</div>
+          <div class="mini-metrics">
+            <div class="mini-metric"><span>骨骼肌重</span><strong>36.1 kg</strong></div>
+            <div class="mini-metric"><span>體脂肪重</span><strong>9.8 kg</strong></div>
+            <div class="mini-metric"><span>體脂率</span><strong>13.4%</strong></div>
+          </div>
+        </article>
+      </div>
+      <h3>身體組成詳細比較</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>指標</th><th>2020/09/01</th><th>2025/04/24</th><th>變化</th></tr></thead>
+          <tbody>
+            <tr><td>身高</td><td>176 cm</td><td>176 cm</td><td>相同</td></tr>
+            <tr><td>體重</td><td>76.8 kg</td><td>73.3 kg</td><td>−3.5 kg</td></tr>
+            <tr><td>BMI</td><td>24.8</td><td>23.7</td><td>−1.1</td></tr>
+            <tr><td>骨骼肌重</td><td>36.8 kg</td><td>36.1 kg</td><td>−0.7 kg</td></tr>
+            <tr><td>體脂肪重</td><td>12.4 kg</td><td>9.8 kg</td><td>−2.6 kg</td></tr>
+            <tr><td>體脂率</td><td>16.1%</td><td>13.4%</td><td>−2.7 個百分點</td></tr>
+            <tr><td>腰臀比</td><td>0.82</td><td>0.80</td><td>−0.02</td></tr>
+            <tr><td>內臟脂肪等級</td><td>4</td><td>3</td><td>−1</td></tr>
+            <tr><td>基礎代謝率</td><td>1,762 kcal</td><td>1,742 kcal</td><td>−20 kcal</td></tr>
+            <tr><td>InBody 健身評分</td><td>85</td><td>86</td><td>+1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="chart-wrap"><canvas id="bodyCompChart" aria-label="InBody 身體組成變化圖表"></canvas></div>
+      <div class="notice info">解讀：兩次測量顯示體重與體脂肪重下降，骨骼肌重相近。InBody 結果會受水分、測量時間及其他條件影響；兩次測量不能代表中間每一年的變化，也不應單憑單次測量判定健康狀況。</div>
+    </section>
+
+    <section id="section4" class="section">
+      <div class="section-head"><div><h2>每週三天訓練安排</h2><p class="muted">作為訓練規劃參考，可依實際體能、時間與恢復狀況調整。</p></div></div>
+      <article class="schedule-card">
+        <span class="day-tag">第 1 天｜推</span><h3>胸、肩、三頭肌</h3>
+        <ul class="exercise-list"><li>槓鈴或啞鈴臥推：4 組 × 8–12 次</li><li>肩推與側平舉：各 3 組 × 10–12 次</li><li>三頭肌訓練：3 組 × 10–12 次</li><li>可選擇輕鬆有氧 10–20 分鐘</li></ul>
+      </article>
+      <article class="schedule-card">
+        <span class="day-tag">第 2 天｜拉</span><h3>背部、二頭肌</h3>
+        <ul class="exercise-list"><li>滑輪下拉或引體向上：4 組 × 8–12 次</li><li>坐姿划船或胸靠划船：4 組 × 8–12 次</li><li>二頭彎舉：3 組 × 10–12 次</li><li>訓練過程注意動作控制與肩胛穩定</li></ul>
+      </article>
+      <article class="schedule-card">
+        <span class="day-tag">第 3 天｜下肢與核心</span><h3>腿部、核心，可搭配輕鬆跑</h3>
+        <ul class="exercise-list"><li>深蹲或腿推舉：3–4 組 × 8–12 次</li><li>羅馬尼亞硬舉或腿後勾：3 組 × 8–12 次</li><li>棒式與核心訓練：各 3 組</li><li>如恢復狀況良好，可另安排 5–8 公里輕鬆跑；避免每次都跑高強度</li></ul>
+      </article>
+      <p class="muted small">提醒：課表是一般訓練範例，並非醫療或個人化診療建議。有疼痛、受傷或特殊健康狀況時，應調整訓練並諮詢合適的專業人員。</p>
+    </section>
+
+    <footer>
+      資料說明：InBody 數值取自 2020/09/01 與 2025/04/24 測量報告；運動與 Apple 健康統計尚未匯入並核實。此頁為成果展示，不取代醫療評估。
+    </footer>
+  </main>
+
+  <script>
+    // 分頁切換：純前端功能，不需要資料庫。
+    const navButtons = document.querySelectorAll('.nav button');
+    const sections = document.querySelectorAll('.section');
+    navButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const target = button.dataset.section;
+        navButtons.forEach((item) => {
+          const selected = item === button;
+          item.classList.toggle('active', selected);
+          item.setAttribute('aria-selected', String(selected));
+        });
+        sections.forEach((section) => section.classList.toggle('active', section.id === target));
+        // 使用者首次開啟 InBody 分頁時再建立圖表，避免隱藏畫布尺寸判定錯誤。
+        if (target === 'section3' && !window.bodyCompChart && typeof Chart !== 'undefined') {
+          createBodyCompChart();
+        }
+      });
+    });
+
+    function createBodyCompChart() {
+      const canvas = document.getElementById('bodyCompChart');
+      if (!canvas || window.bodyCompChart) return;
+      window.bodyCompChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: ['體重 (kg)', '骨骼肌重 (kg)', '體脂肪重 (kg)', '體脂率 (%)'],
+          datasets: [
+            { label: '2020/09/01', data: [76.8, 36.8, 12.4, 16.1], backgroundColor: '#9abcf5', borderRadius: 6 },
+            { label: '2025/04/24', data: [73.3, 36.1, 9.8, 13.4], backgroundColor: '#1769e0', borderRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 18 } },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, grid: { color: '#edf0f5' }, ticks: { precision: 0 } }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
