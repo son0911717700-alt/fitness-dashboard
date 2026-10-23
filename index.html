@@ -38,6 +38,8 @@
     .subtitle { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
     .status-pill { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; padding: 8px 11px; border-radius: 999px; color: var(--amber); background: var(--amber-soft); font-size: 12px; font-weight: 700; }
     .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #d69b18; }
+    .status-pill.ready { color: var(--green); background: var(--green-soft); }
+    .status-pill.ready .status-dot { background: var(--green); }
     .nav { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; background: #e9edf4; border-radius: 14px; margin-bottom: 18px; }
     .nav button { flex: 1 1 190px; cursor: pointer; border: 0; border-radius: 10px; padding: 12px 14px; background: transparent; color: #4f5b6e; font-size: 14px; font-weight: 700; }
     .nav button:hover { background: rgba(255,255,255,.7); }
@@ -105,7 +107,7 @@
         <h1>個人健身與運動成果儀表板</h1>
         <p class="subtitle">主管檢視版｜呈現運動成果與身體組成的長期變化</p>
       </div>
-      <div class="status-pill"><span class="status-dot"></span>運動紀錄待匯入</div>
+      <div class="status-pill ready"><span class="status-dot"></span>運動資料已整理｜截至 2026/10/20</div>
     </header>
 
     <nav class="nav" aria-label="儀表板功能分頁">
@@ -119,34 +121,52 @@
       <div class="section-head">
         <div>
           <h2>跑步里程統計</h2>
-          <p class="muted">可依週、月、年追蹤跑步量與訓練規律。</p>
+          <p class="muted">依 Apple 健康匯出檔中的跑步訓練紀錄彙總；統計截止 2026 年 10 月 20 日。</p>
         </div>
-        <span class="badge pending">尚未連接 Apple 健康資料</span>
+        <span class="badge">Apple 健康資料已整理</span>
       </div>
       <div class="grid-3">
-        <article class="card"><div class="card-title">本週累計跑量</div><div class="card-value">—</div><div class="card-unit">公里 KM｜待匯入及核對</div></article>
-        <article class="card"><div class="card-title">本月累計跑量</div><div class="card-value">—</div><div class="card-unit">公里 KM｜待匯入及核對</div></article>
-        <article class="card"><div class="card-title">今年累計跑量</div><div class="card-value">—</div><div class="card-unit">公里 KM｜待匯入及核對</div></article>
+        <article class="card"><div class="card-title">本週累計跑量</div><div class="card-value">0.0</div><div class="card-unit">公里 KM｜10/19–10/20 未記錄跑步</div></article>
+        <article class="card"><div class="card-title">本月累計跑量</div><div class="card-value">13.8</div><div class="card-unit">公里 KM｜3 次跑步紀錄</div></article>
+        <article class="card"><div class="card-title">今年累計跑量</div><div class="card-value">78.7</div><div class="card-unit">公里 KM｜19 次跑步紀錄</div></article>
       </div>
-      <div class="notice info">目前先不顯示示範里程，避免將假數據誤認為實際成果。完成 Apple 健康資料整理後，即可填入統計數字並產生月度趨勢圖。</div>
-      <div class="chart-placeholder"><div><div class="placeholder-icon">📈</div><div class="placeholder-title">每月跑量圖表</div><div>等待匯入並核對運動日期、距離及重複紀錄後顯示</div></div></div>
+      <div class="notice info"><strong>匯入成果：</strong>歷史累計跑步 <strong>459.6 公里</strong>，共 <strong>117 次</strong>（紀錄期間：2019/03–2026/10）。本週數據只統計到匯出檔涵蓋的 2026/10/20，並非即時同步。統計僅使用跑步訓練中的距離彙總，不公開 GPS 路線或逐筆心率。</div>
+      <h3>2026 年每月跑量（公里）</h3>
+      <div class="chart-wrap"><canvas id="runMileageChart" aria-label="2026 年每月跑步里程"></canvas></div>
+      <h3 style="margin-top:22px">歷年跑步里程（公里）</h3>
+      <div class="chart-wrap"><canvas id="annualMileageChart" aria-label="歷年跑步里程"></canvas></div>
+      <p class="muted small">資料說明：2022 年匯出檔中沒有跑步訓練紀錄，不代表一定沒有實際跑步；未記錄或未同步的活動不會被計入。</p>
     </section>
 
     <section id="section2" class="section">
       <div class="section-head">
         <div>
-          <h2>運動紀錄與恢復趨勢</h2>
-          <p class="muted">只呈現經確認的彙總趨勢，不公開個別心率紀錄或 GPS 路線。</p>
+          <h2>運動紀錄摘要</h2>
+          <p class="muted">只顯示各類運動的彙總次數與時間，不公開私人心率或 GPS 路線。</p>
         </div>
-        <span class="badge pending">資料待核實</span>
+        <span class="badge">已整理 173 次運動</span>
       </div>
       <div class="grid-3">
-        <article class="card"><div class="card-title">運動總次數</div><div class="card-value">—</div><div class="card-unit">待匯入運動紀錄</div></article>
-        <article class="card"><div class="card-title">累計運動時間</div><div class="card-value">—</div><div class="card-unit">小時｜待匯入運動紀錄</div></article>
-        <article class="card"><div class="card-title">活動量趨勢</div><div class="card-value">—</div><div class="card-unit">待核對紀錄與單位</div></article>
+        <article class="card"><div class="card-title">運動總次數</div><div class="card-value">173</div><div class="card-unit">次｜共 6 種運動類型</div></article>
+        <article class="card"><div class="card-title">累計運動時間</div><div class="card-value">84.5</div><div class="card-unit">小時｜所有已匯出運動類型</div></article>
+        <article class="card"><div class="card-title">跑步訓練次數</div><div class="card-value">117</div><div class="card-unit">次｜累計 459.6 公里</div></article>
       </div>
-      <div class="notice">隱私設定：主管版不顯示靜止心率、運動平均／最高心率、健康診斷或逐筆運動路線。若日後要加入心率趨勢，應先選擇適合公開的彙總指標。</div>
-      <div class="chart-placeholder"><div><div class="placeholder-icon">❤️</div><div class="placeholder-title">運動與恢復趨勢</div><div>目前沒有已核實的彙總資料可供繪圖</div></div></div>
+      <div class="notice info">隱私設定：此主管版只展示彙總統計，不顯示逐筆心率、睡眠、健康診斷、個人位置或 GPS 路線。統計範圍截至 Apple 健康匯出日期 2026/10/20。</div>
+      <h3>運動類型次數</h3>
+      <div class="chart-wrap"><canvas id="activityTypeChart" aria-label="各類運動次數"></canvas></div>
+      <div class="table-wrap" style="margin-top:16px">
+        <table>
+          <thead><tr><th>運動類型</th><th>紀錄次數</th><th>累計時間</th></tr></thead>
+          <tbody>
+            <tr><td>跑步</td><td>117</td><td>44.5 小時</td></tr>
+            <tr><td>橢圓機</td><td>19</td><td>7.6 小時</td></tr>
+            <tr><td>爬樓梯</td><td>14</td><td>6.1 小時</td></tr>
+            <tr><td>騎自行車</td><td>12</td><td>16.2 小時</td></tr>
+            <tr><td>步行</td><td>7</td><td>9.3 小時</td></tr>
+            <tr><td>划船機</td><td>4</td><td>0.8 小時</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section id="section3" class="section">
@@ -222,7 +242,7 @@
     </section>
 
     <footer>
-      資料說明：InBody 數值取自 2020/09/01 與 2025/04/24 測量報告；運動與 Apple 健康統計尚未匯入並核實。此頁為成果展示，不取代醫療評估。
+      資料說明：運動統計取自 Apple 健康匯出檔（匯出日期 2026/10/20），InBody 數值取自 2020/09/01 與 2025/04/24 測量報告。此網站是靜態成果快照，不會自動同步 Apple 健康；如有新紀錄，需重新整理統計並更新本檔。此頁不取代醫療評估。
     </footer>
   </main>
 
@@ -239,12 +259,52 @@
           item.setAttribute('aria-selected', String(selected));
         });
         sections.forEach((section) => section.classList.toggle('active', section.id === target));
-        // 使用者首次開啟 InBody 分頁時再建立圖表，避免隱藏畫布尺寸判定錯誤。
-        if (target === 'section3' && !window.bodyCompChart && typeof Chart !== 'undefined') {
-          createBodyCompChart();
-        }
+        // 進入分頁時再建立圖表，避免隱藏畫布尺寸判定錯誤。
+        if (target === 'section1') createMileageCharts();
+        if (target === 'section2') createActivityTypeChart();
+        if (target === 'section3') createBodyCompChart();
       });
     });
+
+    function createMileageCharts() {
+      if (typeof Chart === 'undefined') return;
+      if (!window.runMileageChart) {
+        const canvas = document.getElementById('runMileageChart');
+        if (canvas) window.runMileageChart = new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月'],
+            datasets: [{ label: '跑步里程（公里）', data: [0,3.45,0,0,7.38,10.32,14.55,20.61,8.58,13.79], backgroundColor: '#1769e0', borderRadius: 6 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: '#edf0f5' }, title: { display: true, text: '公里' } } } }
+        });
+      }
+      if (!window.annualMileageChart) {
+        const canvas = document.getElementById('annualMileageChart');
+        if (canvas) window.annualMileageChart = new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels: ['2019','2020','2021','2022','2023','2024','2025','2026*'],
+            datasets: [{ label: '跑步里程（公里）', data: [59.38,65.21,123.75,0,14.29,57.85,60.46,78.67], backgroundColor: '#6c9ff0', borderRadius: 6 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y.toFixed(1)} 公里` } } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: '#edf0f5' }, title: { display: true, text: '公里' } } } }
+        });
+      }
+    }
+
+    function createActivityTypeChart() {
+      if (typeof Chart === 'undefined' || window.activityTypeChart) return;
+      const canvas = document.getElementById('activityTypeChart');
+      if (!canvas) return;
+      window.activityTypeChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: ['跑步','橢圓機','爬樓梯','騎自行車','步行','划船機'],
+          datasets: [{ label: '運動次數', data: [117,19,14,12,7,4], backgroundColor: '#1769e0', borderRadius: 6 }]
+        },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#edf0f5' } }, y: { grid: { display: false } } } }
+      });
+    }
 
     function createBodyCompChart() {
       const canvas = document.getElementById('bodyCompChart');
@@ -272,6 +332,9 @@
         }
       });
     }
+
+    // 首頁分頁預設可見，載入後先產生實際跑步里程圖表。
+    createMileageCharts();
   </script>
 </body>
 </html>
