@@ -61,7 +61,17 @@
     .positive { color: var(--green); }
     .notice { padding: 14px 16px; margin: 12px 0 18px; border-radius: 12px; border: 1px solid #f0dca3; background: #fffaf0; color: #725316; font-size: 13px; }
     .notice.info { border-color: #cfe0ff; background: #f3f7ff; color: #355785; }
-    .chart-wrap { height: 320px; position: relative; padding: 10px 0 2px; }
+    .chart-wrap { height: 470px; position: relative; padding: 14px 0 8px; }
+    #bodyCompChart { min-height: 450px; }
+    .year-legend { display:flex; flex-wrap:wrap; gap:12px 18px; margin:8px 0 14px; }
+    .year-legend span { display:inline-flex; align-items:center; gap:7px; font-size:14px; font-weight:700; }
+    .legend-swatch { width:16px; height:16px; display:inline-block; border-radius:4px; }
+    .exercise-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; }
+    .exercise-item { display:flex; gap:10px; align-items:flex-start; padding:12px; border:1px solid var(--border); border-radius:11px; background:white; }
+    .exercise-icon { width:42px; height:42px; flex:0 0 42px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--primary-soft); font-size:24px; }
+    .exercise-item strong { display:block; margin-bottom:3px; }
+    .exercise-item .cue { font-size:12px; color:var(--muted); }
+    .exercise-item .dose { font-size:13px; color:var(--primary); font-weight:800; margin-top:4px; }
     .chart-wrap > div { width:100%; height:100%; }
     .chart-wrap svg { display:block; overflow:visible; }
     .chart-placeholder { display: flex; min-height: 230px; align-items: center; justify-content: center; text-align: center; padding: 28px; border: 1px dashed #cbd4e1; border-radius: 14px; background: #fafcff; color: var(--muted); }
@@ -225,7 +235,7 @@
           </tbody>
         </table>
       </div>
-      <div class="chart-wrap"><div id="bodyCompChart" role="img" aria-label="InBody 身體組成變化圖表"></div></div>
+      <h3>四次測量圖表</h3><div class="year-legend" aria-label="年度顏色圖例"><span><i class="legend-swatch" style="background:#e45757"></i>2020 年</span><span><i class="legend-swatch" style="background:#3678d4"></i>2021 年</span><span><i class="legend-swatch" style="background:#e5a12a"></i>2025 年</span><span><i class="legend-swatch" style="background:#24966a"></i>2026 年</span></div><div class="chart-wrap"><div id="bodyCompChart" role="img" aria-label="InBody 身體組成變化圖表"></div></div>
       <div class="notice info">解讀：四次測量可觀察到體重、骨骼肌重與體脂率隨時間波動。InBody 結果會受水分、測量時間及其他條件影響，建議在相近時段與條件下追蹤，不應單憑單次測量判定健康狀況。</div>
     </section>
 
@@ -270,10 +280,10 @@
       if(type==='line'){
         const pts=values.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
         out+=`<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`;
-        values.forEach((v,i)=>{out+=`<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="${color}"/><text x="${x(i)}" y="${Math.max(12,y(v)-10)}" text-anchor="middle" font-size="11" fill="#45516a">${v?Number(v.toFixed(1)):''}</text>`;});
+        values.forEach((v,i)=>{const peak=v===Math.max(...values);out+=`<circle cx="${x(i)}" cy="${y(v)}" r="${peak?6:4.5}" fill="${peak?'#e53935':color}"/><text x="${x(i)}" y="${Math.max(12,y(v)-10)}" text-anchor="middle" font-size="11" fill="#45516a">${v?Number(v.toFixed(1)):''}</text>`;});
       } else {
         const slot=pw/labels.length, bw=Math.min(44,slot*.62);
-        values.forEach((v,i)=>{const xx=left+i*slot+(slot-bw)/2, yy=y(v), bh=top+ph-yy;out+=`<rect x="${xx}" y="${yy}" width="${bw}" height="${Math.max(0,bh)}" rx="5" fill="${color}"/>`;if(v>0)out+=`<text x="${xx+bw/2}" y="${yy-6}" text-anchor="middle" font-size="11" fill="#45516a">${Number(v.toFixed(1))}</text>`;});
+        values.forEach((v,i)=>{const xx=left+i*slot+(slot-bw)/2, yy=y(v), bh=top+ph-yy;const peak=v===Math.max(...values)&&v>0;const barColor=peak?'#e53935':['#3678d4','#20a486','#e5a12a','#8b6bd6','#2698c5'][i%5];out+=`<rect x="${xx}" y="${yy}" width="${bw}" height="${Math.max(0,bh)}" rx="5" fill="${barColor}"/>`;if(v>0)out+=`<text x="${xx+bw/2}" y="${yy-6}" text-anchor="middle" font-size="11" fill="#45516a">${Number(v.toFixed(1))}</text>`;});
       }
       labels.forEach((lab,i)=>{let xx=type==='bar'?left+(i+.5)*pw/labels.length:x(i);out+=`<text x="${xx}" y="${h-18}" text-anchor="middle" font-size="12" fill="#687386">${lab}</text>`;});
       out+='</svg>'; el.innerHTML=out;
@@ -289,29 +299,86 @@
       const labels=['跑步','橢圓機','爬樓梯','騎自行車','步行','划船機'], vals=[117,19,14,12,7,4];
       const w=900,row=42,h=vals.length*row+20,left=90,max=120,pw=750;
       let out=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">`;
-      vals.forEach((v,i)=>{let yy=10+i*row;out+=`<text x="${left-12}" y="${yy+23}" text-anchor="end" font-size="13" fill="#687386">${labels[i]}</text><rect x="${left}" y="${yy+6}" width="${pw*v/max}" height="24" rx="5" fill="#1769e0"/><text x="${left+pw*v/max+8}" y="${yy+23}" font-size="12" fill="#45516a">${v}</text>`;});
+      vals.forEach((v,i)=>{let yy=10+i*row;const peak=v===Math.max(...vals);const colors=['#3678d4','#20a486','#e5a12a','#8b6bd6','#2698c5'];const barColor=peak?'#e53935':colors[i%colors.length];out+=`<text x="${left-12}" y="${yy+23}" text-anchor="end" font-size="13" fill="#687386">${labels[i]}</text><rect x="${left}" y="${yy+6}" width="${pw*v/max}" height="24" rx="5" fill="${barColor}"/><text x="${left+pw*v/max+8}" y="${yy+23}" font-size="12" fill="#45516a">${v}</text>`;});
       el.innerHTML=out+'</svg>';
     }
     function renderBodyCompChart(){
       const el=document.getElementById('bodyCompChart');if(!el)return;
-      const labels=['體重 kg','骨骼肌重 kg','體脂肪重 kg','體脂率 %'];
-      const sets=[['2020/09/01',[76.8,36.8,12.4,16.1]],['2021/10/05',[75.9,35.7,13,17.2]],['2025/04/24',[73.3,36.1,9.8,13.4]],['2026/03/30',[75.2,35.6,12.4,16.6]]];
-      const w=900,h=310,left=130,top=18,row=68,colors=['#c7d9fa','#9abcf5','#1769e0','#168653'];let out=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">`;
-      labels.forEach((lab,i)=>{let yy=top+i*row;out+=`<text x="${left-12}" y="${yy+19}" text-anchor="end" font-size="12" fill="#687386">${lab}</text>`;sets.forEach((s,j)=>{let v=s[1][i],scale=5.4;out+=`<rect x="${left}" y="${yy+j*11}" width="${v*scale}" height="8" rx="3" fill="${colors[j]}"/><text x="${left+v*scale+5}" y="${yy+j*11+7}" font-size="9" fill="#45516a">${v}</text>`;});});
-      out+='</svg><p class="muted small">圖例：2020/09/01、2021/10/05、2025/04/24、2026/03/30（由上至下）</p>';el.innerHTML=out;
+      const labels=['體重 (kg)','骨骼肌重 (kg)','體脂肪重 (kg)','體脂率 (%)'];
+      const sets=[['2020 年｜09/01',[76.8,36.8,12.4,16.1],'#e45757'],['2021 年｜10/05',[75.9,35.7,13.0,17.2],'#3678d4'],['2025 年｜04/24',[73.3,36.1,9.8,13.4],'#e5a12a'],['2026 年｜03/30',[75.2,35.6,12.4,16.6],'#24966a']];
+      const w=1000,h=440,left=155,top=22,row=100,barH=15,gap=5;let out=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="440" role="img" aria-label="InBody 四次測量比較，顏色分別代表2020、2021、2025、2026年" xmlns="http://www.w3.org/2000/svg">`;
+      labels.forEach((lab,i)=>{let yy=top+i*row;out+=`<text x="${left-14}" y="${yy+42}" text-anchor="end" font-size="16" font-weight="700" fill="#45516a">${lab}</text>`;sets.forEach((set,j)=>{const v=set[1][i];const scale=7.2;const yyBar=yy+j*(barH+gap);const width=v*scale;out+=`<rect x="${left}" y="${yyBar}" width="${width}" height="${barH}" rx="5" fill="${set[2]}"/><text x="${left+width+8}" y="${yyBar+12}" font-size="13" font-weight="700" fill="#45516a">${v.toFixed(1)}</text>`;});});
+      out+='</svg>';el.innerHTML=out;
     }
     function renderHeartChart(){
       const el=document.getElementById('runningHeartRateChart');if(!el)return;
       const vals=hrBins.map(x=>x[1]), labels=hrBins.map(x=>x[0]);const w=900,h=320,left=58,right=18,top=18,bottom=48,pw=w-left-right,ph=h-top-bottom,max=2000;
       let out=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">`;
       for(let i=0;i<=4;i++){let v=max*i/4,yy=top+ph-v/max*ph;out+=`<line x1="${left}" y1="${yy}" x2="${w-right}" y2="${yy}" stroke="#e7ebf2"/><text x="${left-9}" y="${yy+4}" text-anchor="end" font-size="12" fill="#687386">${v}</text>`;}
-      const slot=pw/vals.length,bw=slot*.64;vals.forEach((v,i)=>{let xx=left+i*slot+(slot-bw)/2,yy=top+ph-v/max*ph;out+=`<rect x="${xx}" y="${yy}" width="${bw}" height="${top+ph-yy}" rx="4" fill="#168653"/>`;if(v)out+=`<text x="${xx+bw/2}" y="${yy-5}" text-anchor="middle" font-size="10" fill="#45516a">${v}</text>`;out+=`<text x="${xx+bw/2}" y="${h-18}" text-anchor="middle" font-size="10" fill="#687386">${labels[i]}</text>`;});
+      const slot=pw/vals.length,bw=slot*.64;vals.forEach((v,i)=>{let xx=left+i*slot+(slot-bw)/2,yy=top+ph-v/max*ph;const peak=v===Math.max(...vals);const colors=['#3678d4','#20a486','#e5a12a','#8b6bd6','#2698c5'];const barColor=peak?'#e53935':colors[i%colors.length];out+=`<rect x="${xx}" y="${yy}" width="${bw}" height="${top+ph-yy}" rx="4" fill="${barColor}"/>`;if(v)out+=`<text x="${xx+bw/2}" y="${yy-5}" text-anchor="middle" font-size="10" fill="#45516a">${v}</text>`;out+=`<text x="${xx+bw/2}" y="${h-18}" text-anchor="middle" font-size="10" fill="#687386">${labels[i]}</text>`;});
       el.innerHTML=out+'</svg>';
     }
     document.querySelectorAll('.nav button').forEach(button=>button.addEventListener('click',()=>{const target=button.dataset.section;document.querySelectorAll('.nav button').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-selected',String(b===button));});document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===target));if(target==='section1')renderMileageCharts();if(target==='section2'){renderActivityChart();renderHeartChart();}if(target==='section3')renderBodyCompChart();}));
     document.querySelectorAll('.chart-btn').forEach(button=>button.addEventListener('click',()=>{const target=button.dataset.target;document.querySelectorAll(`.chart-btn[data-target="${target}"]`).forEach(b=>b.classList.toggle('active',b===button));renderMileageCharts();}));
-    // 每週訓練安排功能
-    document.getElementById('buildPlan').addEventListener('click',()=>{const days=[{label:'第 1 天',part:document.getElementById('day1').value},{label:'第 2 天',part:document.getElementById('day2').value},{label:'第 3 天',part:document.getElementById('day3').value}];const strength=document.getElementById('strengthMinutes').value;const cardioDays=Number(document.getElementById('cardioDays').value);const cardioMinutes=Number(document.getElementById('cardioMinutes').value);const out=document.getElementById('planOutput');out.innerHTML=`<h3>你的每週訓練安排</h3><ul>${days.map(d=>`<li><strong>${d.label}｜${d.part}</strong>：重訓約 ${strength} 分鐘</li>`).join('')}${cardioDays?`<li><strong>有氧訓練</strong>：每週 ${cardioDays} 次，每次 ${cardioMinutes} 分鐘，合計 ${cardioDays*cardioMinutes} 分鐘</li>`:'<li><strong>有氧訓練</strong>：本週未安排</li>'}</ul><p class="muted small">建議把高強度腿部訓練與高強度跑步錯開，並依疲勞與恢復狀況調整。</p>`;});
+    // 每週訓練安排：依選擇的部位產生動作、組數、次數與簡短動作提示。
+    const exercisePlans={
+      '胸':[
+        ['🏋️','上胸｜上斜啞鈴推胸','4 組 × 8–12 下','椅背調成約 30°，手肘微收，推起時不要聳肩。'],
+        ['💪','平胸｜平板臥推','4 組 × 8–12 下','肩胛後收、雙腳踩穩，槓鈴控制下降至胸部附近。'],
+        ['🔻','下胸｜雙槓撐體／下斜推胸','3 組 × 10–12 下','身體微前傾，肩膀保持穩定；不舒服時改用下斜器械推胸。'],
+        ['🪽','胸肌收縮｜滑輪夾胸','3 組 × 12–15 下','手臂微彎，將手把向身體前方合攏，慢慢回放。']
+      ],
+      '背':[
+        ['🧗','背闊肌｜滑輪下拉','4 組 × 8–12 下','胸口抬起，手肘往身體兩側下拉，避免用身體後仰借力。'],
+        ['🚣','中背｜坐姿划船','4 組 × 8–12 下','先收肩胛再拉手肘，回放時不要聳肩。'],
+        ['🏋️','上背｜胸靠划船','3 組 × 10–12 下','胸部貼靠墊，控制拉起與放下，不用腰部甩動。'],
+        ['🔺','斜方肌｜啞鈴聳肩','3 組 × 12–15 下','肩膀垂直向上提，頂端停一秒，不要繞肩轉圈。']
+      ],
+      '肩':[
+        ['🏋️','前三角｜啞鈴肩推','4 組 × 8–12 下','核心收緊，啞鈴向上推但不要過度拱腰。'],
+        ['↗️','中三角｜啞鈴側平舉','4 組 × 12–15 下','手肘微彎，抬至肩膀高度附近，避免甩動。'],
+        ['↔️','後三角｜反向飛鳥','3 組 × 12–15 下','身體穩定前傾，雙臂向外打開，避免聳肩。'],
+        ['🔺','斜方肌｜啞鈴聳肩','3 組 × 12–15 下','向上提肩、短暫停留，再緩慢放下。']
+      ],
+      '腿':[
+        ['🦵','股四頭肌｜腿推機／深蹲','4 組 × 8–12 下','膝蓋方向跟腳尖一致，依活動度控制深度。'],
+        ['🏋️','臀腿｜羅馬尼亞硬舉','3 組 × 8–12 下','髖部向後推，背部保持中立，感受腿後側伸展。'],
+        ['🪑','腿後側｜腿彎舉','3 組 × 10–15 下','動作穩定，不用慣性甩動重量。'],
+        ['🦶','小腿｜站姿提踵','3 組 × 12–20 下','底部伸展、頂端停留，完整控制上下行程。']
+      ],
+      '核心':[
+        ['🧘','腹部｜卷腹','3 組 × 12–15 下','用腹部帶動肩胛離地，避免用手拉脖子。'],
+        ['🧱','核心穩定｜棒式','3 組 × 30–45 秒','頭、背、骨盆維持一直線，持續正常呼吸。'],
+        ['🔄','腹斜肌｜Pallof Press','3 組 × 每側 10–12 下','抗住拉力，軀幹保持正面，不要旋轉。'],
+        ['🦵','下腹｜仰臥抬膝','3 組 × 10–15 下','腰部貼穩墊面，慢慢抬膝再控制放下。']
+      ],
+      '胸＋三頭':[
+        ['🏋️','上胸｜上斜啞鈴推胸','3 組 × 8–12 下','椅背約 30°，肩膀穩定，控制下放。'],
+        ['💪','平胸｜平板臥推','3 組 × 8–12 下','肩胛後收、腳踩穩，避免彈胸。'],
+        ['🔻','下胸｜雙槓撐體／下斜推胸','3 組 × 10–12 下','身體微前傾，肩膀不適就改器械。'],
+        ['💥','三頭肌｜繩索下壓','3 組 × 10–15 下','手肘固定在身體兩側，向下伸直手臂。']
+      ],
+      '背＋二頭':[
+        ['🧗','背闊肌｜滑輪下拉','4 組 × 8–12 下','手肘往下拉，避免身體大幅後仰。'],
+        ['🚣','中背｜坐姿划船','3 組 × 8–12 下','肩胛先收再拉，回放時控制重量。'],
+        ['🔺','斜方肌｜啞鈴聳肩','3 組 × 12–15 下','肩膀向上提，不要轉圈。'],
+        ['💪','二頭肌｜啞鈴彎舉','3 組 × 10–12 下','手肘靠近身體，避免身體搖晃借力。']
+      ],
+      '全身':[
+        ['🦵','腿部｜高腳杯深蹲','3 組 × 10–12 下','胸口抬起，膝蓋方向與腳尖一致。'],
+        ['🏋️','胸部｜器械推胸','3 組 × 10–12 下','肩胛穩定，推起與回放都保持控制。'],
+        ['🚣','背部｜坐姿划船','3 組 × 10–12 下','手肘向後拉，不聳肩、不甩動。'],
+        ['↗️','肩部｜啞鈴側平舉','2 組 × 12–15 下','輕重量控制抬起，避免借力。'],
+        ['🧱','核心｜棒式','3 組 × 30–45 秒','軀幹保持一直線，正常呼吸。']
+      ]
+    };
+    document.getElementById('buildPlan').addEventListener('click',()=>{
+      const days=[{label:'第一天',part:document.getElementById('day1').value},{label:'第二天',part:document.getElementById('day2').value},{label:'第三天',part:document.getElementById('day3').value}];
+      const strength=document.getElementById('strengthMinutes').value;const cardioDays=Number(document.getElementById('cardioDays').value);const cardioMinutes=Number(document.getElementById('cardioMinutes').value);const out=document.getElementById('planOutput');
+      const cards=days.map(d=>{const exercises=exercisePlans[d.part]||exercisePlans['全身'];return `<article class="schedule-card"><span class="day-tag">${d.label}</span><h3>${d.part}｜重訓約 ${strength} 分鐘</h3><div class="exercise-grid">${exercises.map(e=>`<div class="exercise-item"><div class="exercise-icon" aria-hidden="true">${e[0]}</div><div><strong>${e[1]}</strong><div class="dose">${e[2]}</div><div class="cue">動作提醒：${e[3]}</div></div></div>`).join('')}</div></article>`;}).join('');
+      const cardio=cardioDays?`<article class="schedule-card"><span class="day-tag">有氧安排</span><h3>每週 ${cardioDays} 次 × 每次 ${cardioMinutes} 分鐘</h3><p>每週合計 ${cardioDays*cardioMinutes} 分鐘。可選跑步、腳踏車或橢圓機；安排在重訓後或不同日，並依恢復狀況調整。</p></article>`:`<p>本週未安排有氧訓練。</p>`;
+      out.innerHTML=`<h3>你的每週訓練安排</h3><p class="muted small">組數與次數為一般範例；先用可穩定控制的重量，組間休息約 60–120 秒，動作疼痛時停止並調整。</p>${cards}${cardio}`;
+    });
     renderMileageCharts();renderActivityChart();renderBodyCompChart();renderHeartChart();
   </script>
 </body>
