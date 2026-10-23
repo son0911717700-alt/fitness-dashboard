@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="個人健身成果儀表板，展示運動紀錄與 InBody 歷史變化。">
   <title>個人健身成果儀表板｜主管檢視版</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --primary: #1769e0;
@@ -63,6 +62,8 @@
     .notice { padding: 14px 16px; margin: 12px 0 18px; border-radius: 12px; border: 1px solid #f0dca3; background: #fffaf0; color: #725316; font-size: 13px; }
     .notice.info { border-color: #cfe0ff; background: #f3f7ff; color: #355785; }
     .chart-wrap { height: 320px; position: relative; padding: 10px 0 2px; }
+    .chart-wrap > div { width:100%; height:100%; }
+    .chart-wrap svg { display:block; overflow:visible; }
     .chart-placeholder { display: flex; min-height: 230px; align-items: center; justify-content: center; text-align: center; padding: 28px; border: 1px dashed #cbd4e1; border-radius: 14px; background: #fafcff; color: var(--muted); }
     .placeholder-icon { font-size: 30px; margin-bottom: 7px; }
     .placeholder-title { color: var(--text); font-weight: 800; margin-bottom: 5px; }
@@ -82,6 +83,17 @@
     .mini-metric { padding-top: 10px; border-top: 1px solid var(--border); }
     .mini-metric span { display: block; color: var(--muted); font-size: 12px; }
     .mini-metric strong { display: block; font-size: 17px; margin-top: 2px; }
+    .chart-title-row { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+    .chart-switch { display:flex; gap:6px; }
+    .chart-btn, .primary-btn { border:1px solid var(--border); border-radius:9px; padding:8px 12px; cursor:pointer; background:white; color:var(--text); font-weight:700; }
+    .chart-btn.active, .primary-btn { background:var(--primary); border-color:var(--primary); color:white; }
+    .planner { margin-bottom:16px; }
+    .planner-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:16px; }
+    .planner label { display:flex; flex-direction:column; gap:7px; font-size:13px; font-weight:700; color:var(--muted); }
+    .planner select { width:100%; padding:11px; border:1px solid var(--border); border-radius:9px; background:white; color:var(--text); font:inherit; }
+    .plan-output:empty { display:none; }
+    .plan-output { border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:16px; }
+    .plan-output ul { margin-bottom:0; }
     .schedule-card { padding: 18px; margin-bottom: 12px; border: 1px solid var(--border); border-left: 4px solid var(--primary); background: #fbfcff; border-radius: 0 13px 13px 0; }
     .day-tag { display: inline-block; color: var(--primary); background: var(--primary-soft); border-radius: 7px; padding: 4px 8px; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
     ul.exercise-list { margin: 8px 0 0; padding-left: 20px; color: #475267; }
@@ -92,7 +104,7 @@
       header { padding: 19px; align-items: flex-start; flex-direction: column; }
       .section { padding: 18px; }
       .grid-3 { grid-template-columns: 1fr; }
-      .grid-2, .timeline { grid-template-columns: 1fr; }
+      .grid-2, .timeline, .planner-grid { grid-template-columns: 1fr; }
       .section-head { flex-direction: column; }
       .mini-metrics { grid-template-columns: repeat(3, minmax(0,1fr)); }
       .mini-metric strong { font-size: 15px; }
@@ -131,10 +143,10 @@
         <article class="card"><div class="card-title">今年累計跑量</div><div class="card-value">78.7</div><div class="card-unit">公里 KM｜19 次跑步紀錄</div></article>
       </div>
       <div class="notice info"><strong>匯入成果：</strong>歷史累計跑步 <strong>459.6 公里</strong>，共 <strong>117 次</strong>（紀錄期間：2019/03–2026/10）。本週數據只統計到匯出檔涵蓋的 2026/10/20，並非即時同步。統計僅使用跑步訓練中的距離彙總，不公開 GPS 路線或逐筆心率。</div>
-      <h3>2026 年每月跑量（公里）</h3>
-      <div class="chart-wrap"><canvas id="runMileageChart" aria-label="2026 年每月跑步里程"></canvas></div>
-      <h3 style="margin-top:22px">歷年跑步里程（公里）</h3>
-      <div class="chart-wrap"><canvas id="annualMileageChart" aria-label="歷年跑步里程"></canvas></div>
+      <div class="chart-title-row"><h3>2026 年每月跑量（公里）</h3><div class="chart-switch"><button type="button" class="chart-btn active" data-chart="bar" data-target="monthly">柱狀圖</button><button type="button" class="chart-btn" data-chart="line" data-target="monthly">曲線圖</button></div></div>
+      <div class="chart-wrap"><div id="runMileageChart" role="img" aria-label="2026 年每月跑步里程圖表"></div></div>
+      <div class="chart-title-row" style="margin-top:22px"><h3>歷年跑步里程（公里）</h3><div class="chart-switch"><button type="button" class="chart-btn active" data-chart="bar" data-target="annual">柱狀圖</button><button type="button" class="chart-btn" data-chart="line" data-target="annual">曲線圖</button></div></div>
+      <div class="chart-wrap"><div id="annualMileageChart" role="img" aria-label="歷年跑步里程圖表"></div></div>
       <p class="muted small">資料說明：2022 年匯出檔中沒有跑步訓練紀錄，不代表一定沒有實際跑步；未記錄或未同步的活動不會被計入。</p>
     </section>
 
@@ -142,7 +154,7 @@
       <div class="section-head">
         <div>
           <h2>運動紀錄摘要</h2>
-          <p class="muted">只顯示各類運動的彙總次數與時間，不公開私人心率或 GPS 路線。</p>
+          <p class="muted">展示運動摘要與心率指標；心率只會在有真實紀錄可核對後顯示，不公開 GPS 路線。</p>
         </div>
         <span class="badge">已整理 173 次運動</span>
       </div>
@@ -151,9 +163,17 @@
         <article class="card"><div class="card-title">累計運動時間</div><div class="card-value">84.5</div><div class="card-unit">小時｜所有已匯出運動類型</div></article>
         <article class="card"><div class="card-title">跑步訓練次數</div><div class="card-value">117</div><div class="card-unit">次｜累計 459.6 公里</div></article>
       </div>
-      <div class="notice info">隱私設定：此主管版只展示彙總統計，不顯示逐筆心率、睡眠、健康診斷、個人位置或 GPS 路線。統計範圍截至 Apple 健康匯出日期 2026/10/20。</div>
+      <h3>心率摘要</h3>
+      <div class="grid-3">
+        <article class="card"><div class="card-title">跑步期間平均心率</div><div class="card-value">159</div><div class="card-unit">BPM｜51 次有心率樣本的跑步紀錄</div></article>
+        <article class="card"><div class="card-title">跑步期間最高心率</div><div class="card-value">199</div><div class="card-unit">BPM｜匯出樣本最高值</div></article>
+      </div>
+      <div class="notice info">跑步心率統計取自 51 次有心率樣本的跑步紀錄，共 5,341 筆。平均約 159 BPM；最高樣本 199 BPM。這是匯出資料的統計摘要，不是醫療判讀。統計截至 2026/10/20。</div>
+      <h3>跑步期間心率分布</h3>
+      <p class="muted small">依跑步期間的 5,341 筆心率樣本，按每 10 BPM 分組；只呈現分布，不顯示個別時間或路線。</p>
+      <div class="chart-wrap"><div id="runningHeartRateChart" role="img" aria-label="跑步期間心率分布圖"></div></div>
       <h3>運動類型次數</h3>
-      <div class="chart-wrap"><canvas id="activityTypeChart" aria-label="各類運動次數"></canvas></div>
+      <div class="chart-wrap"><div id="activityTypeChart" role="img" aria-label="各類運動次數圖表"></div></div>
       <div class="table-wrap" style="margin-top:16px">
         <table>
           <thead><tr><th>運動類型</th><th>紀錄次數</th><th>累計時間</th></tr></thead>
@@ -173,168 +193,126 @@
       <div class="section-head">
         <div>
           <h2>InBody 身體組成歷程</h2>
-          <p class="muted">比較 2020 年 9 月與 2025 年 4 月兩次測量結果。</p>
+          <p class="muted">比較 2020、2021、2025、2026 年四次測量結果。</p>
         </div>
-        <span class="badge">2 次測量紀錄</span>
+        <span class="badge">4 次測量紀錄</span>
       </div>
       <div class="grid-3">
-        <article class="card"><div class="card-title">體重變化</div><div class="card-value">−3.5 <span style="font-size:15px">kg</span></div><div class="metric-change positive">76.8 → 73.3 kg</div></article>
-        <article class="card"><div class="card-title">體脂肪重變化</div><div class="card-value">−2.6 <span style="font-size:15px">kg</span></div><div class="metric-change positive">12.4 → 9.8 kg</div></article>
-        <article class="card"><div class="card-title">體脂率變化</div><div class="card-value">−2.7 <span style="font-size:15px">個百分點</span></div><div class="metric-change positive">16.1% → 13.4%</div></article>
+        <article class="card"><div class="card-title">最新體重（2026/03/30）</div><div class="card-value">75.2 <span style="font-size:15px">kg</span></div><div class="metric-change">較 2020 年少 1.6 kg</div></article>
+        <article class="card"><div class="card-title">最新骨骼肌重</div><div class="card-value">35.6 <span style="font-size:15px">kg</span></div><div class="metric-change">2026/03/30</div></article>
+        <article class="card"><div class="card-title">最新體脂率</div><div class="card-value">16.6<span style="font-size:15px">%</span></div><div class="metric-change">2026/03/30</div></article>
       </div>
-      <div class="timeline">
-        <article class="timeline-card">
-          <div class="timeline-date">2020 年 9 月 1 日</div>
-          <div class="timeline-weight">76.8 kg</div>
-          <div class="mini-metrics">
-            <div class="mini-metric"><span>骨骼肌重</span><strong>36.8 kg</strong></div>
-            <div class="mini-metric"><span>體脂肪重</span><strong>12.4 kg</strong></div>
-            <div class="mini-metric"><span>體脂率</span><strong>16.1%</strong></div>
-          </div>
-        </article>
-        <article class="timeline-card">
-          <div class="timeline-date">2025 年 4 月 24 日</div>
-          <div class="timeline-weight">73.3 kg</div>
-          <div class="mini-metrics">
-            <div class="mini-metric"><span>骨骼肌重</span><strong>36.1 kg</strong></div>
-            <div class="mini-metric"><span>體脂肪重</span><strong>9.8 kg</strong></div>
-            <div class="mini-metric"><span>體脂率</span><strong>13.4%</strong></div>
-          </div>
-        </article>
+      <div class="timeline timeline-four">
+        <article class="timeline-card"><div class="timeline-date">2020 年 9 月 1 日</div><div class="timeline-weight">76.8 kg</div><div class="mini-metrics"><div class="mini-metric"><span>骨骼肌重</span><strong>36.8 kg</strong></div><div class="mini-metric"><span>體脂肪重</span><strong>12.4 kg</strong></div><div class="mini-metric"><span>體脂率</span><strong>16.1%</strong></div></div></article>
+        <article class="timeline-card"><div class="timeline-date">2021 年 10 月 5 日</div><div class="timeline-weight">75.9 kg</div><div class="mini-metrics"><div class="mini-metric"><span>骨骼肌重</span><strong>35.7 kg</strong></div><div class="mini-metric"><span>體脂肪重</span><strong>13.0 kg</strong></div><div class="mini-metric"><span>體脂率</span><strong>17.2%</strong></div></div></article>
+        <article class="timeline-card"><div class="timeline-date">2025 年 4 月 24 日</div><div class="timeline-weight">73.3 kg</div><div class="mini-metrics"><div class="mini-metric"><span>骨骼肌重</span><strong>36.1 kg</strong></div><div class="mini-metric"><span>體脂肪重</span><strong>9.8 kg</strong></div><div class="mini-metric"><span>體脂率</span><strong>13.4%</strong></div></div></article>
+        <article class="timeline-card"><div class="timeline-date">2026 年 3 月 30 日</div><div class="timeline-weight">75.2 kg</div><div class="mini-metrics"><div class="mini-metric"><span>骨骼肌重</span><strong>35.6 kg</strong></div><div class="mini-metric"><span>體脂肪重</span><strong>12.4 kg</strong></div><div class="mini-metric"><span>體脂率</span><strong>16.6%</strong></div></div></article>
       </div>
       <h3>身體組成詳細比較</h3>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>指標</th><th>2020/09/01</th><th>2025/04/24</th><th>變化</th></tr></thead>
+          <thead><tr><th>指標</th><th>2020/09/01</th><th>2021/10/05</th><th>2025/04/24</th><th>2026/03/30</th></tr></thead>
           <tbody>
-            <tr><td>身高</td><td>176 cm</td><td>176 cm</td><td>相同</td></tr>
-            <tr><td>體重</td><td>76.8 kg</td><td>73.3 kg</td><td>−3.5 kg</td></tr>
-            <tr><td>BMI</td><td>24.8</td><td>23.7</td><td>−1.1</td></tr>
-            <tr><td>骨骼肌重</td><td>36.8 kg</td><td>36.1 kg</td><td>−0.7 kg</td></tr>
-            <tr><td>體脂肪重</td><td>12.4 kg</td><td>9.8 kg</td><td>−2.6 kg</td></tr>
-            <tr><td>體脂率</td><td>16.1%</td><td>13.4%</td><td>−2.7 個百分點</td></tr>
-            <tr><td>腰臀比</td><td>0.82</td><td>0.80</td><td>−0.02</td></tr>
-            <tr><td>內臟脂肪等級</td><td>4</td><td>3</td><td>−1</td></tr>
-            <tr><td>基礎代謝率</td><td>1,762 kcal</td><td>1,742 kcal</td><td>−20 kcal</td></tr>
-            <tr><td>InBody 健身評分</td><td>85</td><td>86</td><td>+1</td></tr>
+            <tr><td>體重</td><td>76.8 kg</td><td>75.9 kg</td><td>73.3 kg</td><td>75.2 kg</td></tr>
+            <tr><td>BMI</td><td>24.8</td><td>24.5</td><td>23.7</td><td>24.3</td></tr>
+            <tr><td>骨骼肌重</td><td>36.8 kg</td><td>35.7 kg</td><td>36.1 kg</td><td>35.6 kg</td></tr>
+            <tr><td>體脂肪重</td><td>12.4 kg</td><td>13.0 kg</td><td>9.8 kg</td><td>12.4 kg</td></tr>
+            <tr><td>體脂率</td><td>16.1%</td><td>17.2%</td><td>13.4%</td><td>16.6%</td></tr>
+            <tr><td>腰臀比</td><td>0.82</td><td>0.84</td><td>0.80</td><td>0.84</td></tr>
+            <tr><td>內臟脂肪等級</td><td>4</td><td>5</td><td>3</td><td>5</td></tr>
+            <tr><td>基礎代謝率</td><td>1,762 kcal</td><td>1,728 kcal</td><td>1,742 kcal</td><td>1,726 kcal</td></tr>
+            <tr><td>InBody 健身評分</td><td>85</td><td>83</td><td>86</td><td>83</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="chart-wrap"><canvas id="bodyCompChart" aria-label="InBody 身體組成變化圖表"></canvas></div>
-      <div class="notice info">解讀：兩次測量顯示體重與體脂肪重下降，骨骼肌重相近。InBody 結果會受水分、測量時間及其他條件影響；兩次測量不能代表中間每一年的變化，也不應單憑單次測量判定健康狀況。</div>
+      <div class="chart-wrap"><div id="bodyCompChart" role="img" aria-label="InBody 身體組成變化圖表"></div></div>
+      <div class="notice info">解讀：四次測量可觀察到體重、骨骼肌重與體脂率隨時間波動。InBody 結果會受水分、測量時間及其他條件影響，建議在相近時段與條件下追蹤，不應單憑單次測量判定健康狀況。</div>
     </section>
 
     <section id="section4" class="section">
-      <div class="section-head"><div><h2>每週三天訓練安排</h2><p class="muted">作為訓練規劃參考，可依實際體能、時間與恢復狀況調整。</p></div></div>
-      <article class="schedule-card">
-        <span class="day-tag">第 1 天｜推</span><h3>胸、肩、三頭肌</h3>
-        <ul class="exercise-list"><li>槓鈴或啞鈴臥推：4 組 × 8–12 次</li><li>肩推與側平舉：各 3 組 × 10–12 次</li><li>三頭肌訓練：3 組 × 10–12 次</li><li>可選擇輕鬆有氧 10–20 分鐘</li></ul>
-      </article>
-      <article class="schedule-card">
-        <span class="day-tag">第 2 天｜拉</span><h3>背部、二頭肌</h3>
-        <ul class="exercise-list"><li>滑輪下拉或引體向上：4 組 × 8–12 次</li><li>坐姿划船或胸靠划船：4 組 × 8–12 次</li><li>二頭彎舉：3 組 × 10–12 次</li><li>訓練過程注意動作控制與肩胛穩定</li></ul>
-      </article>
-      <article class="schedule-card">
-        <span class="day-tag">第 3 天｜下肢與核心</span><h3>腿部、核心，可搭配輕鬆跑</h3>
-        <ul class="exercise-list"><li>深蹲或腿推舉：3–4 組 × 8–12 次</li><li>羅馬尼亞硬舉或腿後勾：3 組 × 8–12 次</li><li>棒式與核心訓練：各 3 組</li><li>如恢復狀況良好，可另安排 5–8 公里輕鬆跑；避免每次都跑高強度</li></ul>
-      </article>
+      <div class="section-head"><div><h2>每週訓練安排</h2><p class="muted">選擇想訓練的部位、有氧頻率與每次分鐘數，按下按鈕產生你的週計畫。</p></div></div>
+      <div class="planner card">
+        <div class="planner-grid">
+          <label>第 1 天訓練部位<select id="day1"><option>胸</option><option>背</option><option>肩</option><option>腿</option><option>胸＋三頭</option><option>背＋二頭</option><option>全身</option></select></label>
+          <label>第 2 天訓練部位<select id="day2"><option>背</option><option>胸</option><option>肩</option><option>腿</option><option>胸＋三頭</option><option>背＋二頭</option><option>全身</option></select></label>
+          <label>第 3 天訓練部位<select id="day3"><option>腿</option><option>胸</option><option>背</option><option>肩</option><option>核心</option><option>全身</option></select></label>
+          <label>每週有氧幾次<select id="cardioDays"><option value="0">0 次</option><option value="1">1 次</option><option value="2" selected>2 次</option><option value="3">3 次</option><option value="4">4 次</option><option value="5">5 次</option><option value="6">6 次</option><option value="7">7 次</option></select></label>
+          <label>每次有氧幾分鐘<select id="cardioMinutes"><option value="10">10 分鐘</option><option value="15">15 分鐘</option><option value="20" selected>20 分鐘</option><option value="30">30 分鐘</option><option value="40">40 分鐘</option><option value="45">45 分鐘</option><option value="60">60 分鐘</option></select></label>
+          <label>每次重訓時間<select id="strengthMinutes"><option value="40">40 分鐘</option><option value="50">50 分鐘</option><option value="60" selected>60 分鐘</option><option value="75">75 分鐘</option><option value="90">90 分鐘</option></select></label>
+        </div>
+        <button type="button" id="buildPlan" class="primary-btn">產生我的訓練安排</button>
+      </div>
+      <div id="planOutput" class="plan-output" aria-live="polite"></div>
       <p class="muted small">提醒：課表是一般訓練範例，並非醫療或個人化診療建議。有疼痛、受傷或特殊健康狀況時，應調整訓練並諮詢合適的專業人員。</p>
     </section>
 
     <footer>
-      資料說明：運動統計取自 Apple 健康匯出檔（匯出日期 2026/10/20），InBody 數值取自 2020/09/01 與 2025/04/24 測量報告。此網站是靜態成果快照，不會自動同步 Apple 健康；如有新紀錄，需重新整理統計並更新本檔。此頁不取代醫療評估。
+      資料說明：運動統計取自 Apple 健康匯出檔（匯出日期 2026/10/20），InBody 數值取自 2020/09/01、2021/10/05、2025/04/24 與 2026/03/30 測量報告。此網站是靜態成果快照，不會自動同步 Apple 健康；如有新紀錄，需重新整理統計並更新本檔。此頁不取代醫療評估。
     </footer>
   </main>
 
   <script>
-    // 分頁切換：純前端功能，不需要資料庫。
-    const navButtons = document.querySelectorAll('.nav button');
-    const sections = document.querySelectorAll('.section');
-    navButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const target = button.dataset.section;
-        navButtons.forEach((item) => {
-          const selected = item === button;
-          item.classList.toggle('active', selected);
-          item.setAttribute('aria-selected', String(selected));
-        });
-        sections.forEach((section) => section.classList.toggle('active', section.id === target));
-        // 進入分頁時再建立圖表，避免隱藏畫布尺寸判定錯誤。
-        if (target === 'section1') createMileageCharts();
-        if (target === 'section2') createActivityTypeChart();
-        if (target === 'section3') createBodyCompChart();
-      });
-    });
+    // 不依賴外部圖表套件：使用原生 SVG 繪圖，即使 CDN 無法載入也會顯示。
+    const monthlyValues = [0,3.45,0,0,7.38,10.32,14.55,20.61,8.58,13.79];
+    const monthlyLabels = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月'];
+    const annualValues = [59.38,65.21,123.75,0,14.29,57.85,60.46,78.67];
+    const annualLabels = ['2019','2020','2021','2022','2023','2024','2025','2026*'];
+    const hrBins = [['80–89',10],['90–99',24],['100–109',208],['110–119',438],['120–129',172],['130–139',201],['140–149',205],['150–159',547],['160–169',1184],['170–179',1918],['180–189',432],['190–199',2]];
 
-    function createMileageCharts() {
-      if (typeof Chart === 'undefined') return;
-      if (!window.runMileageChart) {
-        const canvas = document.getElementById('runMileageChart');
-        if (canvas) window.runMileageChart = new Chart(canvas, {
-          type: 'bar',
-          data: {
-            labels: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月'],
-            datasets: [{ label: '跑步里程（公里）', data: [0,3.45,0,0,7.38,10.32,14.55,20.61,8.58,13.79], backgroundColor: '#1769e0', borderRadius: 6 }]
-          },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: '#edf0f5' }, title: { display: true, text: '公里' } } } }
-        });
+    function svgChart(el, labels, values, type, color, unit) {
+      if (!el) return;
+      const w=900, h=300, left=55, right=18, top=18, bottom=48;
+      const pw=w-left-right, ph=h-top-bottom, max=Math.max(10, Math.ceil(Math.max(...values)/10)*10);
+      const x=i=>left+(labels.length===1?pw/2:i*pw/(labels.length-1));
+      const y=v=>top+ph-(v/max)*ph;
+      let out=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" role="img" aria-label="跑步里程圖表" xmlns="http://www.w3.org/2000/svg">`;
+      for(let i=0;i<=4;i++){let val=max*i/4, yy=y(val);out+=`<line x1="${left}" y1="${yy}" x2="${w-right}" y2="${yy}" stroke="#e7ebf2"/><text x="${left-10}" y="${yy+4}" text-anchor="end" font-size="12" fill="#687386">${val.toFixed(0)}</text>`;}
+      if(type==='line'){
+        const pts=values.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+        out+=`<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`;
+        values.forEach((v,i)=>{out+=`<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="${color}"/><text x="${x(i)}" y="${Math.max(12,y(v)-10)}" text-anchor="middle" font-size="11" fill="#45516a">${v?Number(v.toFixed(1)):''}</text>`;});
+      } else {
+        const slot=pw/labels.length, bw=Math.min(44,slot*.62);
+        values.forEach((v,i)=>{const xx=left+i*slot+(slot-bw)/2, yy=y(v), bh=top+ph-yy;out+=`<rect x="${xx}" y="${yy}" width="${bw}" height="${Math.max(0,bh)}" rx="5" fill="${color}"/>`;if(v>0)out+=`<text x="${xx+bw/2}" y="${yy-6}" text-anchor="middle" font-size="11" fill="#45516a">${Number(v.toFixed(1))}</text>`;});
       }
-      if (!window.annualMileageChart) {
-        const canvas = document.getElementById('annualMileageChart');
-        if (canvas) window.annualMileageChart = new Chart(canvas, {
-          type: 'bar',
-          data: {
-            labels: ['2019','2020','2021','2022','2023','2024','2025','2026*'],
-            datasets: [{ label: '跑步里程（公里）', data: [59.38,65.21,123.75,0,14.29,57.85,60.46,78.67], backgroundColor: '#6c9ff0', borderRadius: 6 }]
-          },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y.toFixed(1)} 公里` } } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: '#edf0f5' }, title: { display: true, text: '公里' } } } }
-        });
-      }
+      labels.forEach((lab,i)=>{let xx=type==='bar'?left+(i+.5)*pw/labels.length:x(i);out+=`<text x="${xx}" y="${h-18}" text-anchor="middle" font-size="12" fill="#687386">${lab}</text>`;});
+      out+='</svg>'; el.innerHTML=out;
     }
-
-    function createActivityTypeChart() {
-      if (typeof Chart === 'undefined' || window.activityTypeChart) return;
-      const canvas = document.getElementById('activityTypeChart');
-      if (!canvas) return;
-      window.activityTypeChart = new Chart(canvas, {
-        type: 'bar',
-        data: {
-          labels: ['跑步','橢圓機','爬樓梯','騎自行車','步行','划船機'],
-          datasets: [{ label: '運動次數', data: [117,19,14,12,7,4], backgroundColor: '#1769e0', borderRadius: 6 }]
-        },
-        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#edf0f5' } }, y: { grid: { display: false } } } }
-      });
+    function renderMileageCharts(){
+      const mt=document.querySelector('.chart-btn[data-target="monthly"].active')?.dataset.chart||'bar';
+      const at=document.querySelector('.chart-btn[data-target="annual"].active')?.dataset.chart||'bar';
+      svgChart(document.getElementById('runMileageChart'),monthlyLabels,monthlyValues,mt,'#1769e0','公里');
+      svgChart(document.getElementById('annualMileageChart'),annualLabels,annualValues,at,'#6c9ff0','公里');
     }
-
-    function createBodyCompChart() {
-      const canvas = document.getElementById('bodyCompChart');
-      if (!canvas || window.bodyCompChart) return;
-      window.bodyCompChart = new Chart(canvas, {
-        type: 'bar',
-        data: {
-          labels: ['體重 (kg)', '骨骼肌重 (kg)', '體脂肪重 (kg)', '體脂率 (%)'],
-          datasets: [
-            { label: '2020/09/01', data: [76.8, 36.8, 12.4, 16.1], backgroundColor: '#9abcf5', borderRadius: 6 },
-            { label: '2025/04/24', data: [73.3, 36.1, 9.8, 13.4], backgroundColor: '#1769e0', borderRadius: 6 }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 18 } },
-            tooltip: { mode: 'index', intersect: false }
-          },
-          scales: {
-            x: { grid: { display: false } },
-            y: { beginAtZero: true, grid: { color: '#edf0f5' }, ticks: { precision: 0 } }
-          }
-        }
-      });
+    function renderActivityChart(){
+      const el=document.getElementById('activityTypeChart'); if(!el)return;
+      const labels=['跑步','橢圓機','爬樓梯','騎自行車','步行','划船機'], vals=[117,19,14,12,7,4];
+      const w=900,row=42,h=vals.length*row+20,left=90,max=120,pw=750;
+      let out=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">`;
+      vals.forEach((v,i)=>{let yy=10+i*row;out+=`<text x="${left-12}" y="${yy+23}" text-anchor="end" font-size="13" fill="#687386">${labels[i]}</text><rect x="${left}" y="${yy+6}" width="${pw*v/max}" height="24" rx="5" fill="#1769e0"/><text x="${left+pw*v/max+8}" y="${yy+23}" font-size="12" fill="#45516a">${v}</text>`;});
+      el.innerHTML=out+'</svg>';
     }
-
-    // 首頁分頁預設可見，載入後先產生實際跑步里程圖表。
-    createMileageCharts();
+    function renderBodyCompChart(){
+      const el=document.getElementById('bodyCompChart');if(!el)return;
+      const labels=['體重 kg','骨骼肌重 kg','體脂肪重 kg','體脂率 %'];
+      const sets=[['2020/09/01',[76.8,36.8,12.4,16.1]],['2021/10/05',[75.9,35.7,13,17.2]],['2025/04/24',[73.3,36.1,9.8,13.4]],['2026/03/30',[75.2,35.6,12.4,16.6]]];
+      const w=900,h=310,left=130,top=18,row=68,colors=['#c7d9fa','#9abcf5','#1769e0','#168653'];let out=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">`;
+      labels.forEach((lab,i)=>{let yy=top+i*row;out+=`<text x="${left-12}" y="${yy+19}" text-anchor="end" font-size="12" fill="#687386">${lab}</text>`;sets.forEach((s,j)=>{let v=s[1][i],scale=5.4;out+=`<rect x="${left}" y="${yy+j*11}" width="${v*scale}" height="8" rx="3" fill="${colors[j]}"/><text x="${left+v*scale+5}" y="${yy+j*11+7}" font-size="9" fill="#45516a">${v}</text>`;});});
+      out+='</svg><p class="muted small">圖例：2020/09/01、2021/10/05、2025/04/24、2026/03/30（由上至下）</p>';el.innerHTML=out;
+    }
+    function renderHeartChart(){
+      const el=document.getElementById('runningHeartRateChart');if(!el)return;
+      const vals=hrBins.map(x=>x[1]), labels=hrBins.map(x=>x[0]);const w=900,h=320,left=58,right=18,top=18,bottom=48,pw=w-left-right,ph=h-top-bottom,max=2000;
+      let out=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">`;
+      for(let i=0;i<=4;i++){let v=max*i/4,yy=top+ph-v/max*ph;out+=`<line x1="${left}" y1="${yy}" x2="${w-right}" y2="${yy}" stroke="#e7ebf2"/><text x="${left-9}" y="${yy+4}" text-anchor="end" font-size="12" fill="#687386">${v}</text>`;}
+      const slot=pw/vals.length,bw=slot*.64;vals.forEach((v,i)=>{let xx=left+i*slot+(slot-bw)/2,yy=top+ph-v/max*ph;out+=`<rect x="${xx}" y="${yy}" width="${bw}" height="${top+ph-yy}" rx="4" fill="#168653"/>`;if(v)out+=`<text x="${xx+bw/2}" y="${yy-5}" text-anchor="middle" font-size="10" fill="#45516a">${v}</text>`;out+=`<text x="${xx+bw/2}" y="${h-18}" text-anchor="middle" font-size="10" fill="#687386">${labels[i]}</text>`;});
+      el.innerHTML=out+'</svg>';
+    }
+    document.querySelectorAll('.nav button').forEach(button=>button.addEventListener('click',()=>{const target=button.dataset.section;document.querySelectorAll('.nav button').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-selected',String(b===button));});document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===target));if(target==='section1')renderMileageCharts();if(target==='section2'){renderActivityChart();renderHeartChart();}if(target==='section3')renderBodyCompChart();}));
+    document.querySelectorAll('.chart-btn').forEach(button=>button.addEventListener('click',()=>{const target=button.dataset.target;document.querySelectorAll(`.chart-btn[data-target="${target}"]`).forEach(b=>b.classList.toggle('active',b===button));renderMileageCharts();}));
+    // 每週訓練安排功能
+    document.getElementById('buildPlan').addEventListener('click',()=>{const days=[{label:'第 1 天',part:document.getElementById('day1').value},{label:'第 2 天',part:document.getElementById('day2').value},{label:'第 3 天',part:document.getElementById('day3').value}];const strength=document.getElementById('strengthMinutes').value;const cardioDays=Number(document.getElementById('cardioDays').value);const cardioMinutes=Number(document.getElementById('cardioMinutes').value);const out=document.getElementById('planOutput');out.innerHTML=`<h3>你的每週訓練安排</h3><ul>${days.map(d=>`<li><strong>${d.label}｜${d.part}</strong>：重訓約 ${strength} 分鐘</li>`).join('')}${cardioDays?`<li><strong>有氧訓練</strong>：每週 ${cardioDays} 次，每次 ${cardioMinutes} 分鐘，合計 ${cardioDays*cardioMinutes} 分鐘</li>`:'<li><strong>有氧訓練</strong>：本週未安排</li>'}</ul><p class="muted small">建議把高強度腿部訓練與高強度跑步錯開，並依疲勞與恢復狀況調整。</p>`;});
+    renderMileageCharts();renderActivityChart();renderBodyCompChart();renderHeartChart();
   </script>
 </body>
 </html>
