@@ -81,6 +81,12 @@
     .chart-placeholder { display: flex; min-height: 230px; align-items: center; justify-content: center; text-align: center; padding: 28px; border: 1px dashed #cbd4e1; border-radius: 14px; background: #fafcff; color: var(--muted); }
     .placeholder-icon { font-size: 30px; margin-bottom: 7px; }
     .placeholder-title { color: var(--text); font-weight: 800; margin-bottom: 5px; }
+    .best-metrics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:12px 0 22px; }
+    .best-metric { padding:14px 15px; border:1px solid #c9ddf4; border-radius:13px; background:linear-gradient(145deg,#ffffff,#eef6ff); box-shadow:0 4px 12px rgba(9,40,80,.07); }
+    .best-metric span { display:block; color:#53677f; font-size:13px; font-weight:700; }
+    .best-metric strong { display:block; margin-top:5px; color:#0b3b72; font-size:23px; line-height:1.25; }
+    .best-metric small { display:block; margin-top:5px; color:#1769b0; font-size:12px; font-weight:700; }
+    td.best-cell { color:#e02020; font-weight:800; white-space:nowrap; }
     table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
     th, td { text-align: left; padding: 13px 12px; border-bottom: 1px solid var(--border); }
     th { color: var(--muted); background: #f7f9fc; font-weight: 700; }
@@ -252,15 +258,15 @@
         <table>
           <thead><tr><th>指標</th><th>2020/09/01</th><th>2021/10/05</th><th>2025/04/24</th><th>2026/03/30</th></tr></thead>
           <tbody>
-            <tr><td>體重</td><td>76.8 kg</td><td>75.9 kg</td><td>73.3 kg</td><td>75.2 kg</td></tr>
-            <tr><td>BMI</td><td>24.8</td><td>24.5</td><td>23.7</td><td>24.3</td></tr>
-            <tr><td>骨骼肌重</td><td>36.8 kg</td><td>35.7 kg</td><td>36.1 kg</td><td>35.6 kg</td></tr>
-            <tr><td>體脂肪重</td><td>12.4 kg</td><td>13.0 kg</td><td>9.8 kg</td><td>12.4 kg</td></tr>
-            <tr><td>體脂率</td><td>16.1%</td><td>17.2%</td><td>13.4%</td><td>16.6%</td></tr>
-            <tr><td>腰臀比</td><td>0.82</td><td>0.84</td><td>0.80</td><td>0.84</td></tr>
-            <tr><td>內臟脂肪等級</td><td>4</td><td>5</td><td>3</td><td>5</td></tr>
-            <tr><td>基礎代謝率</td><td>1,762 kcal</td><td>1,728 kcal</td><td>1,742 kcal</td><td>1,726 kcal</td></tr>
-            <tr><td>InBody 健身評分</td><td>85</td><td>83</td><td>86</td><td>83</td></tr>
+            <tr><td>體重</td><td>76.8 kg</td><td>75.9 kg</td><td class="best-cell">73.3 kg</td><td>75.2 kg</td></tr>
+            <tr><td>BMI</td><td>24.8</td><td>24.5</td><td class="best-cell">23.7</td><td>24.3</td></tr>
+            <tr><td>骨骼肌重</td><td class="best-cell">36.8 kg</td><td>35.7 kg</td><td>36.1 kg</td><td>35.6 kg</td></tr>
+            <tr><td>體脂肪重</td><td>12.4 kg</td><td>13.0 kg</td><td class="best-cell">9.8 kg</td><td>12.4 kg</td></tr>
+            <tr><td>體脂率</td><td>16.1%</td><td>17.2%</td><td class="best-cell">13.4%</td><td>16.6%</td></tr>
+            <tr><td>腰臀比</td><td>0.82</td><td>0.84</td><td class="best-cell">0.80</td><td>0.84</td></tr>
+            <tr><td>內臟脂肪等級</td><td>4</td><td>5</td><td class="best-cell">3</td><td>5</td></tr>
+            <tr><td>基礎代謝率</td><td class="best-cell">1,762 kcal</td><td>1,728 kcal</td><td>1,742 kcal</td><td>1,726 kcal</td></tr>
+            <tr><td>InBody 健身評分</td><td>85</td><td>83</td><td class="best-cell">86</td><td>83</td></tr>
           </tbody>
         </table>
       </div>
@@ -323,16 +329,16 @@
       const x=i=>left+(labels.length===1?pw/2:i*pw/(labels.length-1));
       const y=v=>top+ph-(v/max)*ph;
       let out=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%" role="img" aria-label="跑步里程圖表" xmlns="http://www.w3.org/2000/svg">`;
-      for(let i=0;i<=4;i++){let val=max*i/4, yy=y(val);out+=`<line x1="${left}" y1="${yy}" x2="${w-right}" y2="${yy}" stroke="#7894b5" stroke-opacity=".38"/><text x="${left-10}" y="${yy+4}" text-anchor="end" font-size="12" font-weight="600" fill="#dbeafe">${val.toFixed(0)}</text>`;}
+      for(let i=0;i<=4;i++){let val=max*i/4, yy=y(val);out+=`<line x1="${left}" y1="${yy}" x2="${w-right}" y2="${yy}" stroke="#7894b5" stroke-opacity=".38"/><text x="${left-10}" y="${yy+4}" text-anchor="end" font-size="15" font-weight="700" fill="#dbeafe">${val.toFixed(0)}</text>`;}
       if(type==='line'){
         const pts=values.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
         out+=`<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`;
-        values.forEach((v,i)=>{const peak=v===Math.max(...values);out+=`<circle cx="${x(i)}" cy="${y(v)}" r="${peak?6:4.5}" fill="${peak?'#e53935':color}"/><text x="${x(i)}" y="${Math.max(12,y(v)-10)}" text-anchor="middle" font-size="11" font-weight="700" fill="#f8fbff">${v?Number(v.toFixed(1)):''}</text>`;});
+        values.forEach((v,i)=>{const peak=v===Math.max(...values);out+=`<circle cx="${x(i)}" cy="${y(v)}" r="${peak?6:4.5}" fill="${peak?'#e53935':color}"/><text x="${x(i)}" y="${Math.max(12,y(v)-10)}" text-anchor="middle" font-size="15" font-weight="800" fill="#f8fbff">${v?Number(v.toFixed(1)):''}</text>`;});
       } else {
         const slot=pw/labels.length, bw=Math.min(44,slot*.62);
-        values.forEach((v,i)=>{const xx=left+i*slot+(slot-bw)/2, yy=y(v), bh=top+ph-yy;const peak=v===Math.max(...values)&&v>0;const barColor=peak?'#e53935':['#3678d4','#20a486','#e5a12a','#8b6bd6','#2698c5'][i%5];out+=`<rect x="${xx}" y="${yy}" width="${bw}" height="${Math.max(0,bh)}" rx="5" fill="${barColor}"/>`;if(v>0)out+=`<text x="${xx+bw/2}" y="${yy-6}" text-anchor="middle" font-size="11" font-weight="700" fill="#f8fbff">${Number(v.toFixed(1))}</text>`;});
+        values.forEach((v,i)=>{const xx=left+i*slot+(slot-bw)/2, yy=y(v), bh=top+ph-yy;const peak=v===Math.max(...values)&&v>0;const barColor=peak?'#e53935':['#3678d4','#20a486','#e5a12a','#8b6bd6','#2698c5'][i%5];out+=`<rect x="${xx}" y="${yy}" width="${bw}" height="${Math.max(0,bh)}" rx="5" fill="${barColor}"/>`;if(v>0)out+=`<text x="${xx+bw/2}" y="${yy-6}" text-anchor="middle" font-size="15" font-weight="800" fill="#f8fbff">${Number(v.toFixed(1))}</text>`;});
       }
-      labels.forEach((lab,i)=>{let xx=type==='bar'?left+(i+.5)*pw/labels.length:x(i);out+=`<text x="${xx}" y="${h-18}" text-anchor="middle" font-size="12" font-weight="600" fill="#dbeafe">${lab}</text>`;});
+      labels.forEach((lab,i)=>{let xx=type==='bar'?left+(i+.5)*pw/labels.length:x(i);out+=`<text x="${xx}" y="${h-18}" text-anchor="middle" font-size="14" font-weight="700" fill="#dbeafe">${lab}</text>`;});
       out+='</svg>'; el.innerHTML=out;
     }
     function renderMileageCharts(){
@@ -354,7 +360,7 @@
       const labels=['體重 (kg)','骨骼肌重 (kg)','體脂肪重 (kg)','體脂率 (%)'];
       const sets=[['2020 年｜09/01',[76.8,36.8,12.4,16.1],'#e45757'],['2021 年｜10/05',[75.9,35.7,13.0,17.2],'#3678d4'],['2025 年｜04/24',[73.3,36.1,9.8,13.4],'#e5a12a'],['2026 年｜03/30',[75.2,35.6,12.4,16.6],'#24966a']];
       const w=1000,h=440,left=155,top=22,row=100,barH=15,gap=5;let out=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="440" role="img" aria-label="InBody 四次測量比較，顏色分別代表2020、2021、2025、2026年" xmlns="http://www.w3.org/2000/svg">`;
-      labels.forEach((lab,i)=>{let yy=top+i*row;out+=`<text x="${left-14}" y="${yy+42}" text-anchor="end" font-size="16" font-weight="700" fill="#45516a">${lab}</text>`;sets.forEach((set,j)=>{const v=set[1][i];const scale=7.2;const yyBar=yy+j*(barH+gap);const width=v*scale;out+=`<rect x="${left}" y="${yyBar}" width="${width}" height="${barH}" rx="5" fill="${set[2]}"/><text x="${left+width+8}" y="${yyBar+12}" font-size="13" font-weight="700" fill="#45516a">${v.toFixed(1)}</text>`;});});
+      labels.forEach((lab,i)=>{let yy=top+i*row;out+=`<text x="${left-14}" y="${yy+42}" text-anchor="end" font-size="16" font-weight="700" fill="#f8fbff">${lab}</text>`;sets.forEach((set,j)=>{const v=set[1][i];const scale=7.2;const yyBar=yy+j*(barH+gap);const width=v*scale;out+=`<rect x="${left}" y="${yyBar}" width="${width}" height="${barH}" rx="5" fill="${set[2]}"/><text x="${left+width+8}" y="${yyBar+12}" font-size="14" font-weight="800" fill="#f8fbff">${v.toFixed(1)}</text>`;});});
       out+='</svg>';el.innerHTML=out;
     }
     function renderHeartChart(){
